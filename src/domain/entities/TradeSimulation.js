@@ -17,6 +17,7 @@ export const createSimulation = ({
   taxRate,
   feeEnabled,
   holdings: 0,        // 目前持股張數
+  costBasis: 0,       // 目前持股的總成本（含手續費）
   lastTradeDate: null, // 最後交易日期
   transactions: [],    // 交易紀錄
   realizedProfit: 0,   // 已實現損益

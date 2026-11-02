@@ -42,6 +42,7 @@ export const executeBuy = (simulation, date, shares) => {
     ...simulation,
     cash: simulation.cash - total,
     holdings: simulation.holdings + shares,
+    costBasis: simulation.costBasis + total,
     lastTradeDate: date,
     transactions: [...simulation.transactions, transaction],
   };
@@ -74,8 +75,9 @@ export const executeSell = (simulation, date, shares) => {
 
   // 計算已實現損益（用平均成本）
   const avgCost = calcAvgCost(simulation);
-  const realizedProfit =
-    total - avgCost * shares * 1000;
+  const soldCost = avgCost * shares * 1000;
+  const realizedProfit = total - soldCost;
+  const holdings = simulation.holdings - shares;
 
   const transaction = {
     date,
@@ -92,7 +94,9 @@ export const executeSell = (simulation, date, shares) => {
   return {
     ...simulation,
     cash: simulation.cash + total,
-    holdings: simulation.holdings - shares,
+    holdings,
+    // 全部賣出時歸零，避免浮點誤差殘留
+    costBasis: holdings === 0 ? 0 : simulation.costBasis - soldCost,
     lastTradeDate: date,
     realizedProfit: simulation.realizedProfit + Math.round(realizedProfit),
     transactions: [...simulation.transactions, transaction],
@@ -100,14 +104,11 @@ export const executeSell = (simulation, date, shares) => {
 };
 
 /**
- * 計算平均持股成本（每股）
+ * 計算目前持股的平均成本（每股）
  */
 const calcAvgCost = (simulation) => {
-  const buyTxs = simulation.transactions.filter((t) => t.type === 'buy');
-  const totalShares = buyTxs.reduce((sum, t) => sum + t.shares, 0);
-  const totalCost = buyTxs.reduce((sum, t) => sum + t.total, 0);
-  if (totalShares === 0) return 0;
-  return totalCost / (totalShares * 1000);
+  if (simulation.holdings === 0) return 0;
+  return simulation.costBasis / (simulation.holdings * 1000);
 };
 
 /**
