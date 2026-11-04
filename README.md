@@ -28,7 +28,7 @@
 
 ## 快速開始
 
-需要 Node.js 18 以上。
+需要 Node.js（已在 Node.js 24 測試過）。
 
 ```bash
 npm install
@@ -100,18 +100,33 @@ src/
 
 ### 資料流程
 
+兩個頁面的流程不同。
+
+**回測系統**：一次完成「抓資料 → 計算」
+
 ```
-使用者輸入
+BacktestContainer（檢查輸入）
    ↓
-Container（BacktestContainer / SimulationContainer）
+useBacktest（loading / error / result 狀態）
    ↓
-Hook（useBacktest / useSimulation）
+BacktestService.runWithApi / runWithCsv
+   ├──→ TwseAPI / CsvParser   取得 [{ date, close }, ...]
+   └──→ calculateReturn       計算報酬率
    ↓
-BacktestService ──→ TwseAPI / CsvParser   取得 [{ date, close }, ...]
+ResultCard、PriceChart 顯示結果
+```
+
+**模擬交易**：先載入資料，之後每次買賣都在本機計算
+
+```
+SimulationContainer
+   ├── 載入：BacktestService.loadRecords ──→ TwseAPI / CsvParser
+   │         （取得股價，並找出最接近開始日的交易日）
+   │
+   └── 買賣：useSimulation ──→ simulateTrade（executeBuy / executeSell / calcPortfolio）
+                              （直接呼叫 domain，不經過 BacktestService）
    ↓
-domain usecases（calculateReturn / simulateTrade）
-   ↓
-回傳結果 → 由 components 顯示
+PortfolioPanel、TransactionLog、PriceChart 顯示結果
 ```
 
 ## 計算方式
@@ -119,6 +134,9 @@ domain usecases（calculateReturn / simulateTrade）
 - **報酬率**：`(賣出收盤價 − 買入收盤價) / 買入收盤價 × 100%`
 - **買入成本**：`股價 × 張數 × 1000 + 手續費`
 - **賣出所得**：`股價 × 張數 × 1000 − 手續費 − 證交稅`
+- **平均成本**：記錄目前持股的總成本（含手續費）。買入時加上這筆成本；賣出時，按平均成本扣掉賣出部分的成本；全部賣出後歸零
+- **已實現損益**：`賣出所得 − 平均成本 × 賣出股數`
+- **未實現損益**：`目前市值 − 目前持股的總成本`
 - **手續費／稅**：四捨五入到整數元，沒有設定最低手續費
 - **成交價**：一律用當日收盤價
 - 模擬交易時，每次交易日期必須晚於上一次的交易日期
