@@ -58,19 +58,9 @@ const SimulationContainer = () => {
   // 即時計算當前持倉損益
   const currentPortfolio = getPortfolio(currentPrice);
 
-  const handlePrev = () => {
-    setCurrentIndex((i) => Math.max(0, i - 1));
-  };
-
-  const handleNext = () => {
-    setCurrentIndex((i) => Math.min(simulation.records.length - 1, i + 1));
-  };
-
+  // 時間只能往後走，避免先看到未來的股價再回頭交易
   const jumpDays = (tradingDays) => {
-    setCurrentIndex((i) => {
-      const next = i + tradingDays;
-      return Math.max(0, Math.min(simulation.records.length - 1, next));
-    });
+    setCurrentIndex((i) => Math.min(simulation.records.length - 1, i + tradingDays));
   };
 
   const handleJumpToDate = () => {
@@ -78,6 +68,7 @@ const SimulationContainer = () => {
     // 找最近的交易日
     let idx = simulation.records.findIndex((r) => r.date >= jumpDate);
     if (idx === -1) idx = simulation.records.length - 1;
+    if (idx < currentIndex) return alert('只能往後跳，不能回到過去的日期');
     setCurrentIndex(idx);
   };
 
@@ -91,7 +82,6 @@ const SimulationContainer = () => {
     }
   };
 
-  const isFirst = currentIndex === 0;
   const isLast = simulation && currentIndex === simulation.records.length - 1;
 
   return (
@@ -212,36 +202,17 @@ const SimulationContainer = () => {
                 </div>
               </div>
 
-              {/* 導航按鈕 */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: '8px', alignItems: 'center', marginBottom: '16px' }}>
-                {/* 左側：往前 */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-                  <button onClick={() => jumpDays(-1)} disabled={isFirst} style={navBtnStyle(isFirst)}>
-                    ◀ 前1個交易日
-                  </button>
-                  <button onClick={() => jumpDays(-5)} disabled={isFirst} style={navBtnStyle(isFirst)}>
-                    ◀◀ 前5個交易日
-                  </button>
-                  <button onClick={() => jumpDays(-22)} disabled={isFirst} style={navBtnStyle(isFirst)}>
-                    ◀◀◀ 前22個交易日
-                  </button>
-                </div>
-
-                {/* 中間：日期顯示裝飾 */}
-                <div style={{ width: '2px', height: '80px', backgroundColor: '#ddd', margin: '0 8px' }} />
-
-                {/* 右側：往後 */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-start' }}>
-                  <button onClick={() => jumpDays(1)} disabled={isLast} style={navBtnStyle(isLast)}>
-                    後1個交易日 ▶
-                  </button>
-                  <button onClick={() => jumpDays(5)} disabled={isLast} style={navBtnStyle(isLast)}>
-                    後5個交易日 ▶▶
-                  </button>
-                  <button onClick={() => jumpDays(22)} disabled={isLast} style={navBtnStyle(isLast)}>
-                    後22個交易日 ▶▶▶
-                  </button>
-                </div>
+              {/* 導航按鈕（只能往後） */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                <button onClick={() => jumpDays(1)} disabled={isLast} style={navBtnStyle(isLast)}>
+                  後1個交易日 ▶
+                </button>
+                <button onClick={() => jumpDays(5)} disabled={isLast} style={navBtnStyle(isLast)}>
+                  後5個交易日 ▶▶
+                </button>
+                <button onClick={() => jumpDays(22)} disabled={isLast} style={navBtnStyle(isLast)}>
+                  後22個交易日 ▶▶▶
+                </button>
               </div>
 
               {/* 指定日期跳轉 */}
@@ -250,6 +221,7 @@ const SimulationContainer = () => {
                 <input
                   type="date"
                   value={jumpDate}
+                  min={currentDate}
                   onChange={(e) => setJumpDate(e.target.value)}
                   style={{ padding: '6px', fontSize: '14px', borderRadius: '6px', border: '1px solid #ddd' }}
                 />
@@ -309,7 +281,8 @@ const SimulationContainer = () => {
           </div>
 
           <TransactionLog transactions={simulation.transactions} />
-          <PriceChart records={simulation.records} buyDate={startDate} sellDate={endDate} />
+          {/* 只畫到今天，不洩漏未來走勢 */}
+          <PriceChart records={simulation.records.slice(0, currentIndex + 1)} buyDate={startDate} sellDate={endDate} />
         </>
       )}
 
