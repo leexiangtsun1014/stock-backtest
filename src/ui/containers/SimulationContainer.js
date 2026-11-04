@@ -223,7 +223,7 @@ const SimulationContainer = () => {
                     ◀◀ 前5個交易日
                   </button>
                   <button onClick={() => jumpDays(-22)} disabled={isFirst} style={navBtnStyle(isFirst)}>
-                    ◀◀◀ 前20個交易日
+                    ◀◀◀ 前22個交易日
                   </button>
                 </div>
 
@@ -239,7 +239,7 @@ const SimulationContainer = () => {
                     後5個交易日 ▶▶
                   </button>
                   <button onClick={() => jumpDays(22)} disabled={isLast} style={navBtnStyle(isLast)}>
-                    後20個交易日 ▶▶▶
+                    後22個交易日 ▶▶▶
                   </button>
                 </div>
               </div>
