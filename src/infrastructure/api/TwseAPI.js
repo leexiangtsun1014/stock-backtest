@@ -9,7 +9,11 @@ export const TwseAPI = {
 
     // 計算時間範圍（Unix timestamp）
     const start = Math.floor(new Date(startDate).getTime() / 1000);
-    const end = Math.floor(new Date(endDate).getTime() / 1000);
+    // Yahoo 把台股每日資料標在 UTC 01:00（台北 09:00 開盤），
+    // 若結束時間停在 endDate 的 00:00，最後一天會被排除，所以往後多抓一天，
+    // 多出來的資料會被下方的 filter 濾掉
+    const ONE_DAY = 24 * 60 * 60;
+    const end = Math.floor(new Date(endDate).getTime() / 1000) + ONE_DAY;
 
     if (onProgress) onProgress({ current: 1, total: 1, month: '資料載入中' });
 
