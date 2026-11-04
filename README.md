@@ -44,12 +44,20 @@ npm test         # 執行測試（watch 模式）
 npm run build    # 產生正式版到 build/
 ```
 
+## 部署
+
+每次 push 到 `main`，GitHub Actions（`.github/workflows/deploy.yml`）會自動執行測試、打包，並部署到 GitHub Pages：
+
+<https://leexiangtsun1014.github.io/stock-backtest/>
+
+> ⚠️ 線上版只能用「上傳 CSV」。GitHub Pages 只能放靜態檔案，沒有代理可以轉送請求給 Yahoo，所以線上抓取會顯示提示訊息。
+
 ## 資料來源
 
 ### 線上抓取
 `src/infrastructure/api/TwseAPI.js` 會用 `{股票代號}.TW` 向 Yahoo Finance 取得每日收盤價。因為瀏覽器有 CORS 限制，請求會送到 `/yahoo/...`，再由 `src/setupProxy.js` 在本機轉送給 Yahoo。
 
-> ⚠️ 這個代理只在 `npm start` 時有效。`npm run build` 產生的正式版沒有代理，線上抓取不能用；要部署的話，需要另外寫一個後端來轉送請求。
+> ⚠️ 這個代理只在 `npm start` 時有效。`npm run build` 產生的正式版沒有代理，線上抓取不能用；要在線上版使用，需要部署到能轉送請求的平台（例如 Vercel），或另外寫一個後端。
 
 > 目前只支援上市股票（`.TW`）。上櫃股票要用 `.TWO` 後綴，還沒有支援。
 

@@ -5,6 +5,11 @@
  */
 export const TwseAPI = {
   fetch: async (stockNo, startDate, endDate, onProgress) => {
+    // 正式版（例如 GitHub Pages）沒有代理，直接告訴使用者原因
+    if (process.env.NODE_ENV !== 'development') {
+      throw new Error('線上抓取只能在本機開發模式（npm start）使用，請改用「上傳 CSV」');
+    }
+
     const symbol = `${stockNo}.TW`;
 
     // 計算時間範圍（Unix timestamp）
