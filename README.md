@@ -24,7 +24,7 @@
 | 框架 | React 19（Create React App / `react-scripts` 5） |
 | 圖表 | [Recharts](https://recharts.org/) |
 | CSV 解析 | [PapaParse](https://www.papaparse.com/)（Big5 編碼） |
-| 股價資料 | Yahoo Finance Chart API（透過 `corsproxy.io` 代理） |
+| 股價資料 | Yahoo Finance Chart API（透過開發伺服器代理） |
 
 ## 快速開始
 
@@ -47,7 +47,9 @@ npm run build    # 產生正式版到 build/
 ## 資料來源
 
 ### 線上抓取
-`src/infrastructure/api/TwseAPI.js` 會用 `{股票代號}.TW` 向 Yahoo Finance 取得每日收盤價。因為瀏覽器有 CORS 限制，請求會經過公開代理 `corsproxy.io`。代理如果失效，線上抓取就不能用，可以改用 CSV。
+`src/infrastructure/api/TwseAPI.js` 會用 `{股票代號}.TW` 向 Yahoo Finance 取得每日收盤價。因為瀏覽器有 CORS 限制，請求會送到 `/yahoo/...`，再由 `src/setupProxy.js` 在本機轉送給 Yahoo。
+
+> ⚠️ 這個代理只在 `npm start` 時有效。`npm run build` 產生的正式版沒有代理，線上抓取不能用；要部署的話，需要另外寫一個後端來轉送請求。
 
 > 目前只支援上市股票（`.TW`）。上櫃股票要用 `.TWO` 後綴，還沒有支援。
 

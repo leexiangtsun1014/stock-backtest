@@ -1,6 +1,7 @@
 /**
  * 透過 Yahoo Finance API 抓取台股歷史收盤價
- * 一次請求即可取得多年資料，不會有被擋的問題
+ * 一次請求即可取得多年資料
+ * 請求經由 src/setupProxy.js 的開發代理轉送（只在 npm start 時有效）
  */
 export const TwseAPI = {
   fetch: async (stockNo, startDate, endDate, onProgress) => {
@@ -12,7 +13,7 @@ export const TwseAPI = {
 
     if (onProgress) onProgress({ current: 1, total: 1, month: '資料載入中' });
 
-    const url = `https://corsproxy.io/?https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&period1=${start}&period2=${end}`;
+    const url = `/yahoo/v8/finance/chart/${symbol}?interval=1d&period1=${start}&period2=${end}`;
 
     const res = await fetch(url);
     if (!res.ok) throw new Error(`無法取得股票資料，請確認股票代號是否正確`);
